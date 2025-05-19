@@ -1,5 +1,68 @@
-/* Estilos globais com tema hacker */
-@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+/* Efeitos de ligamento e desligamento */
+@keyframes turnOn {
+  0% {
+    transform: scale(1, 0.8) translate3d(0, 0, 0);
+    filter: brightness(30);
+    opacity: 1;
+  }
+  
+  3.5% {
+    transform: scale(1, 0.8) translate3d(0, 100%, 0);
+  }
+
+  3.6% {
+    transform: scale(1, 0.8) translate3d(0, -100%, 0);
+    opacity: 1;
+  }
+  
+  9% {
+    transform: scale(1.3, 0.6) translate3d(0, 100%, 0);
+    filter: brightness(30);
+    opacity: 0;
+  }
+  
+  11% {
+    transform: scale(1, 1) translate3d(0, 0, 0);
+    filter: contrast(0) brightness(0);
+    opacity: 0;
+  }
+  
+  100% {
+    transform: scale(1, 1) translate3d(0, 0, 0);
+    filter: contrast(1) brightness(1.2) saturate(1.3);
+    opacity: 1;
+  }
+}
+
+@keyframes turnOff {
+  0% {
+    transform: scale(1, 1.3) translate3d(0, 0, 0);
+    filter: brightness(1);
+    opacity: 1;
+  }
+  
+  60% {
+    transform: scale(1.3, 0.001) translate3d(0, 0, 0);
+    filter: brightness(10);
+  }
+  
+  100% { 
+    transform: scale(1.3, 0.001) translate3d(0, 0, 0);
+    filter: brightness(0);
+    opacity: 0;
+  }
+}
+
+.turn-on {
+  animation: turnOn 0.8s linear;
+  animation-fill-mode: forwards;
+}
+
+.turn-off {
+  animation: turnOff 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  animation-fill-mode: forwards;
+}/* Estilos globais com tema hacker */
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 :root {
   --hacker-green: #00ff00;
@@ -7,7 +70,8 @@
   --hacker-black: #000000;
   --hacker-light-green: #88ff88;
   --input-bg: rgba(0, 20, 0, 0.7);
-  --terminal-font: "VT323", monospace;
+  --terminal-font: 'VT323', monospace;
+  --crt-flicker: 0.3s;
 }
 
 * {
@@ -22,6 +86,22 @@ body {
   color: var(--hacker-green);
   line-height: 1.5;
   overflow-x: hidden;
+  position: relative;
+}
+
+/* Efeito de tela granulada/ruído */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.08;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  z-index: 1000;
+  animation: staticNoise 0.2s infinite;
 }
 
 .container {
@@ -31,9 +111,7 @@ body {
   padding: 20px;
 }
 
-h1,
-h2,
-h3 {
+h1, h2, h3 {
   color: var(--hacker-green);
   text-shadow: 0 0 5px var(--hacker-green);
   letter-spacing: 1px;
@@ -74,8 +152,7 @@ button:active {
 }
 
 /* Inputs com estilo de terminal */
-input,
-textarea {
+input, textarea {
   background-color: var(--input-bg);
   color: var(--hacker-green);
   border: 1px solid var(--hacker-green);
@@ -85,13 +162,22 @@ textarea {
   width: 100%;
   margin-bottom: 10px;
   box-shadow: 0 0 5px rgba(0, 255, 0, 0.2);
+  transition: all 0.3s ease;
 }
 
-input:focus,
-textarea:focus {
+input:focus, textarea:focus {
   outline: none;
   border-color: var(--hacker-light-green);
-  box-shadow: 0 0 8px var(--hacker-green);
+  box-shadow: 
+    0 0 8px var(--hacker-green),
+    0 0 12px rgba(0, 255, 0, 0.3),
+    inset 0 0 5px rgba(0, 255, 0, 0.2);
+  animation: pulseFocus 2s infinite;
+}
+
+@keyframes pulseFocus {
+  0%, 100% { box-shadow: 0 0 8px var(--hacker-green), 0 0 12px rgba(0, 255, 0, 0.3), inset 0 0 5px rgba(0, 255, 0, 0.2); }
+  50% { box-shadow: 0 0 12px var(--hacker-green), 0 0 18px rgba(0, 255, 0, 0.5), inset 0 0 8px rgba(0, 255, 0, 0.3); }
 }
 
 /* Card estilo terminal */
@@ -102,6 +188,31 @@ textarea:focus {
   padding: 20px;
   margin-bottom: 20px;
   box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+  position: relative;
+}
+
+/* Efeito de cintilação leve na tela */
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 255, 0, 0.03);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+  animation: screenFlicker 7s infinite;
+}
+
+@keyframes screenFlicker {
+  0% { opacity: 0; }
+  92% { opacity: 0; }
+  93% { opacity: 0.1; }
+  94% { opacity: 0.05; }
+  96% { opacity: 0.15; }
+  100% { opacity: 0; }
 }
 
 .card-header {
@@ -127,13 +238,8 @@ textarea:focus {
 }
 
 @keyframes blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 /* Efeito para simular scan de terminal */
@@ -149,22 +255,111 @@ textarea:focus {
   left: 0;
   width: 100%;
   height: 10px;
-  background: linear-gradient(
-    180deg,
-    transparent,
-    rgba(0, 255, 0, 0.2),
-    transparent
-  );
+  background: linear-gradient(180deg, transparent, rgba(0, 255, 0, 0.2), transparent);
   animation: scan 3s linear infinite;
 }
 
+/* Animação de ruído estático */
+@keyframes staticNoise {
+  0% { background-position: 0 0; }
+  100% { background-position: 100% 100%; }
+}
+
+/* Efeito de linha de escaneamento horizontal */
+.crt-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.crt-effect::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    rgba(0, 0, 0, 0) 50%,
+    rgba(0, 0, 0, 0.25) 50%
+  );
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* Efeito de linha distorcida aleatória */
+.crt-effect::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: rgba(0, 255, 0, 0.15);
+  box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 999;
+  animation: randomScanline 8s linear infinite;
+}
+
+@keyframes randomScanline {
+  0% { 
+    top: -10%; 
+    opacity: 0;
+    transform: translateX(0);
+  }
+  10% { 
+    opacity: 0; 
+  }
+  11% {
+    top: 40%;
+    opacity: 1;
+    transform: translateX(10px);
+  }
+  12% {
+    top: 40%;
+    transform: translateX(-10px);
+  }
+  13% {
+    top: 40%;
+    transform: translateX(0);
+  }
+  20% { 
+    top: 80%; 
+    opacity: 0;
+  }
+  100% { 
+    top: 80%; 
+    opacity: 0;
+  }
+}
+
+/* Efeito de aberração cromática nas bordas */
+.card, .modal-content, input, textarea, button {
+  position: relative;
+  overflow: hidden;
+}
+
+.card::after, .modal-content::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  pointer-events: none;
+  z-index: 100;
+  box-shadow: 
+    inset 0 0 1px 1px rgba(255, 0, 0, 0.1),
+    inset 0 0 2px 2px rgba(0, 255, 0, 0.15),
+    inset 0 0 3px 3px rgba(0, 0, 255, 0.1);
+}
+
 @keyframes scan {
-  0% {
-    top: -5%;
-  }
-  100% {
-    top: 105%;
-  }
+  0% { top: -5%; }
+  100% { top: 105%; }
 }
 
 /* Navbar estilo hacker */
@@ -289,12 +484,8 @@ textarea:focus {
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Form groups */
@@ -313,7 +504,7 @@ textarea:focus {
   position: relative;
 }
 
-.glitch-icon::before,
+.glitch-icon::before, 
 .glitch-icon::after {
   content: attr(data-icon);
   position: absolute;
@@ -335,24 +526,12 @@ textarea:focus {
 }
 
 @keyframes glitch {
-  0% {
-    transform: translate(0);
-  }
-  20% {
-    transform: translate(-2px, 2px);
-  }
-  40% {
-    transform: translate(-2px, -2px);
-  }
-  60% {
-    transform: translate(2px, 2px);
-  }
-  80% {
-    transform: translate(2px, -2px);
-  }
-  100% {
-    transform: translate(0);
-  }
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
 }
 
 /* Responsividade */
@@ -361,7 +540,7 @@ textarea:focus {
     flex-direction: column;
     text-align: center;
   }
-
+  
   .navbar-links {
     margin-top: 10px;
   }
